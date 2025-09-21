@@ -81,18 +81,18 @@ export const getEmployeeColumns = (handleEditEmployee, handleDeleteEmployee) => 
 export const paymentColumns = [
   {
     title: "Employee",
-    dataIndex: "employeeName",
-    key: "employeeName",
+    dataIndex: "employeename",
+    key: "employeename",
   },
   {
     title: "Pay Period",
     dataIndex: "payPeriod",
-    key: "payPeriod",
+    key: "payperiod",
   },
   {
     title: "Gross Pay",
     dataIndex: "grossPay",
-    key: "grossPay",
+    key: "grosspay",
     render: (amount) => `${amount?.toLocaleString()}`,
   },
   {
@@ -103,21 +103,21 @@ export const paymentColumns = [
   },
   {
     title: "Net Pay",
-    dataIndex: "netPay",
+    dataIndex: "netpay",
     key: "netPay",
     render: (amount) => `${amount?.toLocaleString()}`,
   },
-  {
-    title: "Status",
-    dataIndex: "status",
-    key: "status",
-    render: (status) => (
-      <Badge
-        status={status === "paid" ? "success" : "processing"}
-        text={status.toUpperCase()}
-      />
-    ),
-  },
+  // {
+  //   title: "Status",
+  //   dataIndex: "status",
+  //   key: "status",
+  //   render: (status) => (
+  //     <Badge
+  //       status={status === "paid" ? "success" : "processing"}
+  //       text={status.toUpperCase()}
+  //     />
+  //   ),
+  // },
   {
     title: "Actions",
     key: "actions",

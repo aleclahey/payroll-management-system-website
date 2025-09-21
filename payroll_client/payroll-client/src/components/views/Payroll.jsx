@@ -57,20 +57,6 @@ export const Payroll = ({
             scroll={{ x: 'max-content' }}
           />
         </TabPane>
-        <TabPane tab="Historical" key="2">
-          <div style={{ padding: 40, textAlign: 'center' }}>
-            <Text type="secondary">
-              Historical payroll data will be displayed here
-            </Text>
-          </div>
-        </TabPane>
-        <TabPane tab="Reports" key="3">
-          <div style={{ padding: 40, textAlign: 'center' }}>
-            <Text type="secondary">
-              Payroll reports and analytics will be available here
-            </Text>
-          </div>
-        </TabPane>
       </Tabs>
     </Card>
   </div>

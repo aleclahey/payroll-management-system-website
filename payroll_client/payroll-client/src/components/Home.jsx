@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Layout,
-  Menu,
-  Avatar,
-  Space,
-  Typography,
-  notification,
-} from "antd";
+import { Layout, Menu, Avatar, Space, Typography, notification } from "antd";
 import {
   DashboardOutlined,
   UserOutlined,
@@ -14,19 +7,17 @@ import {
   CalendarOutlined,
   BankOutlined,
 } from "@ant-design/icons";
-import { api, apiCall } from '../api/api';
-import { 
-  getEmployeeColumns, 
-  getTimesheetColumns, 
-  getBenefitsColumns,
-} from './TableColumns';
+import { api, apiCall } from "../api/api";
 import {
-  EmployeeModal,
-  AddressModal,
-  BenefitModal,
-  TimesheetModal,
-} from './Modals';
-import Dashboard from './views/Dashboard';
+  getEmployeeColumns,
+  getTimesheetColumns,
+  getBenefitsColumns,
+} from "./TableColumns";
+import { EmployeeModal } from "./modals/EmployeeModal";
+import { AddressModal } from "./modals/AddressModal";
+import { BenefitModal } from "./modals/BenefitsModal";
+import { TimesheetModal } from "./modals/TimesheetModal";
+import Dashboard from "./views/Dashboard";
 import Benefits from "./views/Benefits";
 import Timesheet from "./views/Timesheet";
 import Payroll from "./views/Payroll";
@@ -47,6 +38,7 @@ const Home = () => {
   const [benefitPlans, setBenefitPlans] = useState([]);
   const [addressTypes, setAddressTypes] = useState([]);
   const [addresses, setAddresses] = useState([]);
+  const [positions, setPositions] = useState([]); // Add positions state
   const [loading, setLoading] = useState(false);
 
   // Modal visibility states
@@ -79,6 +71,8 @@ const Home = () => {
         benefitPlansData,
         addressTypesData,
         addressesData,
+        // Add positions loading if available
+        // positionsData,
       ] = await Promise.all([
         api.fetchEmployees(),
         api.fetchDepartments(),
@@ -89,7 +83,9 @@ const Home = () => {
         api.fetchBenefitPlans(),
         api.fetchAddressTypes(),
         api.fetchAddresses(),
+        // api.fetchPositions(), // Add this if you have positions endpoint
       ]);
+
       setEmployees(employeesData);
       setDepartments(departmentsData);
       setPayments(paymentsData);
@@ -99,6 +95,7 @@ const Home = () => {
       setBenefitPlans(benefitPlansData);
       setAddressTypes(addressTypesData);
       setAddresses(addressesData);
+      // setPositions(positionsData); // Set positions if available
     } catch (error) {
       console.error("API Error:", error);
       notification.error({
@@ -114,6 +111,7 @@ const Home = () => {
     setCurrent(e.key);
   };
 
+  // Employee handlers
   const handleAddEmployee = () => {
     setEditingEmployee(null);
     setModalVisible(true);
@@ -126,7 +124,7 @@ const Home = () => {
 
   const handleDeleteEmployee = async (employeeId) => {
     try {
-      await apiCall(`/employees/${employeeId}/`, { method: 'DELETE' });
+      await apiCall(`/employees/${employeeId}/`, { method: "DELETE" });
       notification.success({
         message: "Success",
         description: "Employee deleted successfully",
@@ -141,43 +139,7 @@ const Home = () => {
     }
   };
 
-  const handleModalOk = async () => {
-    try {
-      // Get form values - you'll need to implement form handling
-      const formData = {
-        firstName: '', // Get from form
-        lastName: '',  // Get from form
-        gender: '',    // Get from form
-        hireDate: '',  // Get from form
-        departmentId: '', // Get from form
-        positionId: '',   // Get from form
-        // Add other fields as needed
-      };
-
-      if (editingEmployee) {
-        await api.updateEmployee(editingEmployee.id, formData);
-        notification.success({
-          message: "Success",
-          description: "Employee updated successfully",
-        });
-      } else {
-        await api.createEmployee(formData);
-        notification.success({
-          message: "Success",
-          description: "Employee added successfully",
-        });
-      }
-      setModalVisible(false);
-      loadData();
-    } catch (error) {
-      console.error("Operation failed:", error);
-      notification.error({
-        message: "Error",
-        description: `Operation failed: ${error.message}`,
-      });
-    }
-  };
-
+  // Timesheet handlers
   const handleAddTimesheet = () => {
     setEditingTimesheet(null);
     setTimesheetModalVisible(true);
@@ -188,41 +150,9 @@ const Home = () => {
     setTimesheetModalVisible(true);
   };
 
-  const handleTimesheetModalOk = async () => {
-    try {
-      const formData = {
-        employeeId: '', // Get from form
-        clockIn: '',    // Get from form
-        clockOut: '',   // Get from form
-        // Add other fields as needed
-      };
-
-      if (editingTimesheet) {
-        notification.success({
-          message: "Success",
-          description: "Timesheet updated successfully",
-        });
-      } else {
-        await api.createTimesheet(formData);
-        notification.success({
-          message: "Success",
-          description: "Timesheet added successfully",
-        });
-      }
-      setTimesheetModalVisible(false);
-      loadData();
-    } catch (error) {
-      console.error("Operation failed:", error);
-      notification.error({
-        message: "Error",
-        description: `Operation failed: ${error.message}`,
-      });
-    }
-  };
-
   const handleApproveTimesheet = async (timesheetId) => {
     try {
-      // You'll need to implement timesheet approval logic
+      await api.updateTimesheet(timesheetId, { status: "approved" });
       notification.success({
         message: "Success",
         description: "Timesheet approved successfully",
@@ -239,7 +169,7 @@ const Home = () => {
 
   const handleRejectTimesheet = async (timesheetId) => {
     try {
-      // You'll need to implement timesheet rejection logic
+      await api.updateTimesheet(timesheetId, { status: "rejected" });
       notification.success({
         message: "Success",
         description: "Timesheet rejected successfully",
@@ -254,6 +184,7 @@ const Home = () => {
     }
   };
 
+  // Benefit handlers
   const handleAddBenefit = () => {
     setEditingBenefit(null);
     setBenefitModalVisible(true);
@@ -264,40 +195,9 @@ const Home = () => {
     setBenefitModalVisible(true);
   };
 
-  const handleBenefitModalOk = async () => {
-    try {
-      const formData = {
-        employeeId: '', // Get from form
-        benefitPlan: '', // Get from form
-        // Add other fields as needed
-      };
-
-      if (editingBenefit) {
-        notification.success({
-          message: "Success",
-          description: "Benefit updated successfully",
-        });
-      } else {
-        await api.createBenefit(formData);
-        notification.success({
-          message: "Success",
-          description: "Benefit added successfully",
-        });
-      }
-      setBenefitModalVisible(false);
-      loadData();
-    } catch (error) {
-      console.error("Operation failed:", error);
-      notification.error({
-        message: "Error",
-        description: `Operation failed: ${error.message}`,
-      });
-    }
-  };
-
   const handleDeleteBenefit = async (benefitId) => {
     try {
-      await apiCall(`/benefits/${benefitId}/`, { method: 'DELETE' });
+      await apiCall(`/benefits/${benefitId}/`, { method: "DELETE" });
       notification.success({
         message: "Success",
         description: "Benefit removed successfully",
@@ -312,24 +212,49 @@ const Home = () => {
     }
   };
 
+  // Address handlers
+  const handleManageAddresses = (employee) => {
+    setSelectedEmployee(employee);
+    setEditingAddress(null);
+    setAddressModalVisible(true);
+  };
+
   const handleEditAddress = (address) => {
     setEditingAddress(address);
   };
 
-  const handleDeleteAddress = (addressId) => {
-    notification.success({
-      message: "Success",
-      description: "Address deleted successfully",
-    });
+  const handleAddAddress = (employee) => {
+    setEditingAddress({ employeeId: employee.id });
   };
 
-  const handleAddressModalOk = async () => {
-    notification.success({
-      message: "Success",
-      description: editingAddress ? "Address updated successfully" : "Address added successfully",
-    });
+  // const handleDeleteAddress = async (addressId) => {
+  //   // This is now handled inside the modal
+  // };
+
+  // Modal success handlers (called after successful operations)
+  const handleModalSuccess = () => {
+    setModalVisible(false);
+    setEditingEmployee(null);
+    loadData();
+  };
+
+  const handleTimesheetModalSuccess = () => {
+    setTimesheetModalVisible(false);
+    setEditingTimesheet(null);
+    loadData();
+  };
+
+  const handleBenefitModalSuccess = () => {
+    setBenefitModalVisible(false);
+    setEditingBenefit(null);
+    loadData();
+  };
+
+  const handleAddressModalSuccess = () => {
     setAddressModalVisible(false);
     setEditingAddress(null);
+    setSelectedEmployee(null);
+    loadData();
   };
 
   // Calculate dashboard statistics
@@ -352,7 +277,12 @@ const Home = () => {
     .reduce((sum, b) => sum + b.cost, 0);
 
   // Create column configurations with handlers
-  const employeeColumns = getEmployeeColumns(handleEditEmployee, handleDeleteEmployee);
+  const employeeColumns = getEmployeeColumns(
+    handleEditEmployee,
+    handleDeleteEmployee,
+    handleManageAddresses // Add address management handler
+  );
+
   // Update department filters dynamically
   employeeColumns[1].filters = departments.map((dept) => ({
     text: dept.name,
@@ -360,12 +290,15 @@ const Home = () => {
   }));
 
   const timesheetColumns = getTimesheetColumns(
-    handleEditTimesheet, 
-    handleApproveTimesheet, 
+    handleEditTimesheet,
+    handleApproveTimesheet,
     handleRejectTimesheet
   );
-  
-  const benefitsColumns = getBenefitsColumns(handleEditBenefit, handleDeleteBenefit);
+
+  const benefitsColumns = getBenefitsColumns(
+    handleEditBenefit,
+    handleDeleteBenefit
+  );
 
   const menuItems = [
     {
@@ -544,8 +477,12 @@ const Home = () => {
         editingEmployee={editingEmployee}
         departments={departments}
         employees={employees}
-        onOk={handleModalOk}
-        onCancel={() => setModalVisible(false)}
+        positions={positions}
+        onSuccess={handleModalSuccess}
+        onCancel={() => {
+          setModalVisible(false);
+          setEditingEmployee(null);
+        }}
       />
 
       <AddressModal
@@ -554,10 +491,15 @@ const Home = () => {
         selectedEmployee={selectedEmployee}
         addresses={addresses}
         addressTypes={addressTypes}
-        onOk={handleAddressModalOk}
-        onCancel={() => setAddressModalVisible(false)}
-        handleEditAddress={handleEditAddress}
-        handleDeleteAddress={handleDeleteAddress}
+        onSuccess={handleAddressModalSuccess}
+        onCancel={() => {
+          setAddressModalVisible(false);
+          setEditingAddress(null);
+          setSelectedEmployee(null);
+        }}
+        onEditAddress={handleEditAddress}
+        // onDeleteAddress={handleDeleteAddress}
+        onAddAddress={handleAddAddress}
       />
 
       <BenefitModal
@@ -565,16 +507,22 @@ const Home = () => {
         editingBenefit={editingBenefit}
         employees={employees}
         benefitPlans={benefitPlans}
-        onOk={handleBenefitModalOk}
-        onCancel={() => setBenefitModalVisible(false)}
+        onSuccess={handleBenefitModalSuccess}
+        onCancel={() => {
+          setBenefitModalVisible(false);
+          setEditingBenefit(null);
+        }}
       />
 
       <TimesheetModal
         visible={timesheetModalVisible}
         editingTimesheet={editingTimesheet}
         employees={employees}
-        onOk={handleTimesheetModalOk}
-        onCancel={() => setTimesheetModalVisible(false)}
+        onSuccess={handleTimesheetModalSuccess}
+        onCancel={() => {
+          setTimesheetModalVisible(false);
+          setEditingTimesheet(null);
+        }}
       />
     </Layout>
   );
