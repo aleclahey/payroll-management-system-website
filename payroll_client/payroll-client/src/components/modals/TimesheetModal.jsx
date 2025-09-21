@@ -30,7 +30,7 @@ export const TimesheetModal = ({
   useEffect(() => {
     if (editingTimesheet) {
       form.setFieldsValue({
-        employeeId: editingTimesheet.employeeId,
+        employee: editingTimesheet.employeeId,
         date: editingTimesheet.date,
         clockIn: editingTimesheet.clockIn,
         clockOut: editingTimesheet.clockOut,
@@ -81,6 +81,7 @@ export const TimesheetModal = ({
           description: "Timesheet updated successfully",
         });
       } else {
+        console.log(values);
         await api.createTimesheet(values);
         notification.success({
           message: "Success",
@@ -116,7 +117,7 @@ export const TimesheetModal = ({
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              name="employeeId"
+              name="employee"
               label="Employee"
               rules={[{ required: true, message: 'Please select employee' }]}
             >

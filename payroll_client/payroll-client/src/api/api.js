@@ -266,7 +266,7 @@ export const api = {
     return apiCall('/benefits/', {
       method: 'POST',
       body: JSON.stringify({
-        employeeid: benefitData.employeeId,
+        employee: benefitData.employeeId,
         benefitplan: benefitData.benefitPlan
       }),
     });
@@ -304,7 +304,7 @@ export const api = {
     return apiCall('/timesheets/', {
       method: 'POST',
       body: JSON.stringify({
-        employeeid: timesheetData.employeeId,
+        employee: timesheetData.employee,
         clockin: timesheetData.clockIn,
         clockout: timesheetData.clockOut
       }),
