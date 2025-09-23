@@ -1,14 +1,17 @@
-import React from 'react';
-import { Space, Button, Avatar, Tag, Badge } from 'antd';
+import React from "react";
+import { Space, Button, Avatar, Tag, Badge } from "antd";
 import {
   UserOutlined,
   EditOutlined,
   DeleteOutlined,
   DownloadOutlined,
-} from '@ant-design/icons';
+} from "@ant-design/icons";
 
 // Employee Table Columns
-export const getEmployeeColumns = (handleEditEmployee, handleDeleteEmployee) => [
+export const getEmployeeColumns = (
+  handleEditEmployee,
+  handleDeleteEmployee
+) => [
   {
     title: "Name",
     key: "name",
@@ -64,11 +67,13 @@ export const getEmployeeColumns = (handleEditEmployee, handleDeleteEmployee) => 
         >
           Edit
         </Button>
-        <Button 
-          icon={<DeleteOutlined />} 
-          size="small" 
+        <Button
+          icon={<DeleteOutlined />}
+          size="small"
           danger
-          onClick={() => handleDeleteEmployee && handleDeleteEmployee(record.id)}
+          onClick={() =>
+            handleDeleteEmployee && handleDeleteEmployee(record.id)
+          }
         >
           Delete
         </Button>
@@ -132,7 +137,11 @@ export const paymentColumns = [
 ];
 
 // Timesheet Table Columns
-export const getTimesheetColumns = (handleEditTimesheet, handleApproveTimesheet, handleRejectTimesheet) => [
+export const getTimesheetColumns = (
+  handleEditTimesheet,
+  handleApproveTimesheet,
+  handleRejectTimesheet
+) => [
   {
     title: "Employee",
     dataIndex: "employeeName",
@@ -178,20 +187,29 @@ export const getTimesheetColumns = (handleEditTimesheet, handleApproveTimesheet,
     dataIndex: "status",
     key: "status",
     render: (status) => {
-      const colors = {
-        approved: "success",
-        pending: "processing",
-        rejected: "error",
-      };
-      return <Badge status={colors[status]} text={status.toUpperCase()} />;
+      const normalizedStatus = (status || "").toLowerCase();
+      const badgeColor =
+        {
+          completed: "success",
+          pending: "processing",
+          rejected: "error",
+        }[normalizedStatus] || "default";
+
+      return (
+        <Badge
+          status={badgeColor}
+          text={status ? status.toUpperCase() : "UNKNOWN"}
+        />
+      );
     },
     filters: [
       { text: "Approved", value: "approved" },
       { text: "Pending", value: "pending" },
       { text: "Rejected", value: "rejected" },
     ],
-    onFilter: (value, record) => record.status === value,
+    onFilter: (value, record) => record.status?.toLowerCase() === value,
   },
+
   {
     title: "Actions",
     key: "actions",
@@ -287,7 +305,12 @@ export const getBenefitsColumns = (handleEditBenefit, handleDeleteBenefit) => [
         pending: "processing",
         inactive: "default",
       };
-      return <Badge status={colors[status]} text={status.charAt(0).toUpperCase() + status.slice(1)} />;
+      return (
+        <Badge
+          status={colors[status]}
+          text={status.charAt(0).toUpperCase() + status.slice(1)}
+        />
+      );
     },
     filters: [
       { text: "Active", value: "active" },

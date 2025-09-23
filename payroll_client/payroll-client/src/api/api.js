@@ -484,7 +484,7 @@ export const api = {
     });
   },
 
-  // Timesheets APIs
+  // Timesheets APIs - Updated to match actual API structure
   async fetchTimesheets() {
     const [timesheets, employees, departments] = await Promise.all([
       apiCall("/timesheets/"),
@@ -498,19 +498,28 @@ export const api = {
         ? departments.find((d) => d.id === employee.department)
         : null;
 
+      // Calculate total hours from clock in/out times
+      let totalHours = ts.hoursworked || 0;
+      let overtimeHours = 0;
+      let breakTime = 30; // Default 30 minutes
+
+      // If hours worked is more than 8, calculate overtime
+      if (totalHours > 8) {
+        overtimeHours = totalHours - 8;
+      }
+
       return {
         id: ts.id,
         employeeId: ts.employee,
-        employeeName: employee
-          ? `${employee.firstname} ${employee.lastname}`
-          : "Unknown",
-        date: new Date().toISOString().split("T")[0],
+        employeeName: ts.employeename || (employee ? `${employee.firstname} ${employee.lastname}` : "Unknown"),
+        date: new Date().toISOString().split("T")[0], // Current date as default
         clockIn: ts.clockin,
         clockOut: ts.clockout,
-        breakTime: 30,
-        totalHours: 8.0,
-        overtimeHours: 0,
-        status: "pending",
+        hoursWorked: ts.hoursworked,
+        breakTime: breakTime,
+        totalHours: totalHours,
+        overtimeHours: overtimeHours,
+        status: totalHours > 0 ? "completed" : "pending",
         department: department?.departmentname || "",
       };
     });
@@ -520,10 +529,28 @@ export const api = {
     return apiCall("/timesheets/", {
       method: "POST",
       body: JSON.stringify({
-        employee: timesheetData.employee,
+        employee: timesheetData.employeeId || timesheetData.employee,
+        clockin: timesheetData.clockIn,
+        clockout: timesheetData.clockOut,
+        // Note: hoursworked and employeename might be calculated/set by the backend
+      }),
+    });
+  },
+
+  async updateTimesheet(id, timesheetData) {
+    return apiCall(`/timesheets/${id}/`, {
+      method: "PUT",
+      body: JSON.stringify({
+        employee: timesheetData.employeeId || timesheetData.employee,
         clockin: timesheetData.clockIn,
         clockout: timesheetData.clockOut,
       }),
+    });
+  },
+
+  async deleteTimesheet(id) {
+    return apiCall(`/timesheets/${id}/`, {
+      method: "DELETE",
     });
   },
 

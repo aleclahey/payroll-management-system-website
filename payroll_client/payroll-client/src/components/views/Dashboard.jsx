@@ -1,33 +1,30 @@
-import React from 'react';
-import { 
-  Card, 
-  Table, 
-  Button, 
-  Row, 
-  Col, 
-  Statistic, 
-  Badge, 
-  Progress, 
-  Typography, 
-  Tag 
-} from 'antd';
+import React from "react";
 import {
-  TeamOutlined,
-  ClockCircleOutlined,
-} from '@ant-design/icons';
-import { paymentColumns } from '../TableColumns';
+  Card,
+  Table,
+  Button,
+  Row,
+  Col,
+  Statistic,
+  Badge,
+  Progress,
+  Typography,
+  Tag,
+} from "antd";
+import { TeamOutlined, ClockCircleOutlined } from "@ant-design/icons";
+import { paymentColumns } from "../TableColumns";
 
 const { Title, Text } = Typography;
 
-export const Dashboard = ({ 
-  totalEmployees, 
-  totalPayroll, 
-  pendingPayments, 
-  pendingTimesheets, 
-  timesheets, 
-  hoursWorked, 
-  payments, 
-  departments
+export const Dashboard = ({
+  totalEmployees,
+  totalPayroll,
+  pendingPayments,
+  pendingTimesheets,
+  timesheets,
+  hoursWorked,
+  payments,
+  departments,
 }) => (
   <div>
     <Title level={2}>Dashboard</Title>
@@ -106,15 +103,18 @@ export const Dashboard = ({
                 dataIndex: "status",
                 key: "status",
                 render: (status) => {
-                  const colors = {
-                    approved: "success",
-                    pending: "processing",
-                    rejected: "error",
-                  };
+                  const normalizedStatus = (status || "").toLowerCase();
+                  const badgeColor =
+                    {
+                      completed: "success",
+                      pending: "processing",
+                      rejected: "error",
+                    }[normalizedStatus] || "default";
+
                   return (
                     <Badge
-                      status={colors[status]}
-                      text={status.toUpperCase()}
+                      status={badgeColor}
+                      text={status ? status.toUpperCase() : "UNKNOWN"}
                     />
                   );
                 },
@@ -177,14 +177,16 @@ export const Dashboard = ({
         <Card title="Department Overview">
           {departments.map((dept) => (
             <div key={dept.id} style={{ marginBottom: 16 }}>
-              <div
-                style={{ display: "flex", justifyContent: "space-between" }}
-              >
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <Text>{dept.name}</Text>
                 <Text>{dept.employeeCount} employees</Text>
               </div>
               <Progress
-                percent={totalEmployees > 0 ? (dept.employeeCount / totalEmployees) * 100 : 0}
+                percent={
+                  totalEmployees > 0
+                    ? (dept.employeeCount / totalEmployees) * 100
+                    : 0
+                }
                 size="small"
                 showInfo={false}
               />
