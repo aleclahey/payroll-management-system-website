@@ -80,7 +80,7 @@ export const BenefitModal = ({
       onOk={handleOk}
       onCancel={onCancel}
       width={600}
-      destroyOnClose
+      destroyOnHidden
       confirmLoading={loading}
     >
       <Form form={form} layout="vertical">

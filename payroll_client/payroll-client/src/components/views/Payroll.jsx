@@ -29,10 +29,6 @@ export const Payroll = ({
       }}
     >
       <Title level={2}>Payroll Management</Title>
-      <Space>
-        <Button type="primary">Process Payroll</Button>
-        <Button icon={<DownloadOutlined />}>Export All</Button>
-      </Space>
     </div>
 
     <Card>

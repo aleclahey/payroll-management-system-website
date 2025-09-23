@@ -26,6 +26,7 @@ export const EmployeeModal = ({
   const [form] = Form.useForm();
   const [employeeType, setEmployeeType] = useState("hourly");
   const [loading, setLoading] = useState(false);
+  const [customPosition, setCustomPosition] = useState("");
 
   useEffect(() => {
     if (editingEmployee) {
@@ -46,6 +47,7 @@ export const EmployeeModal = ({
       form.resetFields();
       setEmployeeType("hourly");
     }
+    setCustomPosition(""); // Reset custom position when modal opens/closes
   }, [editingEmployee, form, visible]);
 
   const handleOk = async () => {
@@ -53,19 +55,141 @@ export const EmployeeModal = ({
       setLoading(true);
       const values = await form.validateFields();
 
-      // Convert hireDate to 'YYYY-MM-DD' format
+      // Convert hireDate to 'YYYY-MM-DD' format if it exists
       if (values.hireDate) {
-        values.hireDate = values.hireDate.format("YYYY-MM-DD");
+        // If it's a moment object (from DatePicker), format it
+        if (values.hireDate.format) {
+          values.hireDate = values.hireDate.format("YYYY-MM-DD");
+        } else {
+          // Fallback to current date
+          values.hireDate = new Date().toISOString().split("T")[0];
+        }
+      } else {
+        // Default to current date if no hire date provided
+        values.hireDate = new Date().toISOString().split("T")[0];
+      }
+
+      // Handle custom position creation
+      if (customPosition && !values.positionId) {
+        try {
+          const newPosition = await api.createPosition({
+            title: customPosition,
+            fromDate: new Date().toISOString().split("T")[0],
+            toDate: null,
+          });
+          values.positionId = newPosition.id;
+
+          notification.success({
+            message: "Position Created",
+            description: `New position "${customPosition}" has been created.`,
+          });
+        } catch (err) {
+          console.error("Failed to create custom position:", err);
+          notification.error({
+            message: "Error",
+            description:
+              "Could not create the custom position. Please try again.",
+          });
+          setLoading(false);
+          return;
+        }
       }
 
       if (editingEmployee) {
         await api.updateEmployee(editingEmployee.id, values);
+
+        // Update salary/hourly rate information when editing
+        if (employeeType === "salaried" && values.salary) {
+          try {
+            await api.updateOrCreateSalary({
+              firstName: values.firstName,
+              lastName: values.lastName,
+              hireDate: values.hireDate,
+              id: editingEmployee.id,
+              salaryAmount: values.salary,
+            });
+            console.log("Salary record updated successfully");
+          } catch (salaryError) {
+            console.error("Failed to update salary record:", salaryError);
+            notification.warning({
+              message: "Partial Success",
+              description:
+                "Employee updated but salary record failed to update",
+            });
+          }
+        }
+
+        if (employeeType === "hourly" && values.hourlyRate) {
+          try {
+            await api.updateOrCreateHourlyEmployee({
+              firstName: values.firstName,
+              lastName: values.lastName,
+              hireDate: values.hireDate,
+              id: editingEmployee.id,
+              hourlyRate: values.hourlyRate,
+            });
+            console.log("Hourly employee record updated successfully");
+          } catch (hourlyError) {
+            console.error(
+              "Failed to update hourly employee record:",
+              hourlyError
+            );
+            notification.warning({
+              message: "Partial Success",
+              description:
+                "Employee updated but hourly rate record failed to update",
+            });
+          }
+        }
+
         notification.success({
           message: "Success",
           description: "Employee updated successfully",
         });
       } else {
-        await api.createEmployee(values);
+        // Create the employee first
+        const newEmployee = await api.createEmployee(values);
+
+        // If it's a salaried employee, create salary record
+        if (employeeType === "salaried" && values.salary) {
+          try {
+            await api.createSalary({
+              ...values,
+              id: newEmployee.id, // Use the newly created employee ID
+              salaryAmount: values.salary,
+            });
+            console.log("Salary record created successfully");
+          } catch (salaryError) {
+            console.error("Failed to create salary record:", salaryError);
+            notification.warning({
+              message: "Partial Success",
+              description: "Employee created but salary record failed to save",
+            });
+          }
+        }
+
+        // If it's an hourly employee, create hourly employee record
+        if (employeeType === "hourly" && values.hourlyRate) {
+          try {
+            await api.createHourlyEmployee({
+              ...values,
+              id: newEmployee.id, // Use the newly created employee ID
+              hourlyRate: values.hourlyRate,
+            });
+            console.log("Hourly employee record created successfully");
+          } catch (hourlyError) {
+            console.error(
+              "Failed to create hourly employee record:",
+              hourlyError
+            );
+            notification.warning({
+              message: "Partial Success",
+              description:
+                "Employee created but hourly rate record failed to save",
+            });
+          }
+        }
+
         notification.success({
           message: "Success",
           description: "Employee added successfully",
@@ -73,6 +197,7 @@ export const EmployeeModal = ({
       }
 
       form.resetFields();
+      setCustomPosition("");
       onSuccess && onSuccess();
     } catch (error) {
       console.error("Operation failed:", error);
@@ -85,14 +210,20 @@ export const EmployeeModal = ({
     }
   };
 
+  const handleCancel = () => {
+    form.resetFields();
+    setCustomPosition("");
+    onCancel && onCancel();
+  };
+
   return (
     <Modal
       title={editingEmployee ? "Edit Employee" : "Add Employee"}
       open={visible}
       onOk={handleOk}
-      onCancel={onCancel}
+      onCancel={handleCancel}
       width={800}
-      destroyOnHidden
+      destroyOnClose
       confirmLoading={loading}
     >
       <Form
@@ -139,9 +270,9 @@ export const EmployeeModal = ({
             <Form.Item
               name="hireDate"
               label="Hire Date"
-              rules={[{ required: true, message: "Please select hire date" }]}
+              // rules={[{ required: true, message: "Please select hire date" }]}
             >
-              <DatePicker />
+              {/* <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD" /> */}
             </Form.Item>
           </Col>
           <Col span={8}>
@@ -178,13 +309,47 @@ export const EmployeeModal = ({
           </Col>
           <Col span={12}>
             <Form.Item name="positionId" label="Position">
-              <Select placeholder="Select position" allowClear>
+              <Select
+                placeholder="Select or type to add position"
+                showSearch
+                allowClear
+                filterOption={false}
+                onSearch={(value) => {
+                  setCustomPosition(value);
+                  // If the value matches an existing position, clear custom position
+                  const existingPosition = positions?.find(
+                    (pos) => pos.title.toLowerCase() === value.toLowerCase()
+                  );
+                  if (existingPosition) {
+                    setCustomPosition("");
+                  }
+                }}
+                onSelect={(value) => {
+                  setCustomPosition("");
+                  form.setFieldsValue({ positionId: value });
+                }}
+                onClear={() => {
+                  setCustomPosition("");
+                }}
+                notFoundContent={
+                  customPosition ? (
+                    <div style={{ padding: "8px", color: "#1890ff" }}>
+                      Press Enter to create: "{customPosition}"
+                    </div>
+                  ) : null
+                }
+              >
                 {positions?.map((pos) => (
                   <Option key={pos.id} value={pos.id}>
                     {pos.title}
                   </Option>
                 ))}
               </Select>
+              {customPosition && (
+                <div style={{ marginTop: 4, fontSize: 12, color: "#1890ff" }}>
+                  Will create new position: "{customPosition}"
+                </div>
+              )}
             </Form.Item>
           </Col>
         </Row>

@@ -71,8 +71,7 @@ const Home = () => {
         benefitPlansData,
         addressTypesData,
         addressesData,
-        // Add positions loading if available
-        // positionsData,
+        positionsData,
       ] = await Promise.all([
         api.fetchEmployees(),
         api.fetchDepartments(),
@@ -83,7 +82,7 @@ const Home = () => {
         api.fetchBenefitPlans(),
         api.fetchAddressTypes(),
         api.fetchAddresses(),
-        // api.fetchPositions(), // Add this if you have positions endpoint
+        api.fetchPositions(),
       ]);
 
       setEmployees(employeesData);
@@ -95,7 +94,7 @@ const Home = () => {
       setBenefitPlans(benefitPlansData);
       setAddressTypes(addressTypesData);
       setAddresses(addressesData);
-      // setPositions(positionsData); // Set positions if available
+      setPositions(positionsData); // Set positions if available
     } catch (error) {
       console.error("API Error:", error);
       notification.error({
