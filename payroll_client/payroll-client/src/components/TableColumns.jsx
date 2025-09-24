@@ -1,11 +1,12 @@
 import React from "react";
-import { Space, Button, Avatar, Tag, Badge } from "antd";
+import { Space, Button, Avatar, Tag, Badge, Popconfirm } from "antd";
 import {
   UserOutlined,
   EditOutlined,
   DeleteOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
+import { formatPayrollMonth } from "../api/api";
 
 // Employee Table Columns
 export const getEmployeeColumns = (
@@ -83,16 +84,20 @@ export const getEmployeeColumns = (
 ];
 
 // Payment Table Columns
-export const paymentColumns = [
+export const getPaymentColumns = (
+  handleDeletePayment,
+  deletingIds = new Set()
+) => [
   {
     title: "Employee",
-    dataIndex: "employeename",
+    dataIndex: "employeeName",
     key: "employeename",
   },
   {
     title: "Pay Period",
     dataIndex: "payPeriod",
-    key: "payperiod",
+    key: "payPeriod",
+    render: (payPeriod) => formatPayrollMonth(payPeriod),
   },
   {
     title: "Gross Pay",
@@ -108,21 +113,73 @@ export const paymentColumns = [
   },
   {
     title: "Net Pay",
-    dataIndex: "netpay",
+    dataIndex: "netPay",
     key: "netPay",
     render: (amount) => `${amount?.toLocaleString()}`,
   },
-  // {
-  //   title: "Status",
-  //   dataIndex: "status",
-  //   key: "status",
-  //   render: (status) => (
-  //     <Badge
-  //       status={status === "paid" ? "success" : "processing"}
-  //       text={status.toUpperCase()}
-  //     />
-  //   ),
-  // },
+  {
+    title: "Actions",
+    key: "actions",
+    render: (_, record) => (
+      <Space>
+        <Button size="small" icon={<DownloadOutlined />}>
+          Export
+        </Button>
+        {handleDeletePayment && (
+          <Popconfirm
+            title="Delete Payment"
+            description="Are you sure you want to delete this payment? This action cannot be undone."
+            onConfirm={() => handleDeletePayment(record.id)}
+            okText="Yes, Delete"
+            cancelText="Cancel"
+            okType="danger"
+          >
+            <Button
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              loading={deletingIds.has(record.id)}
+            >
+              Delete
+            </Button>
+          </Popconfirm>
+        )}
+      </Space>
+    ),
+  },
+];
+
+// Legacy payment columns for backward compatibility
+export const paymentColumns = [
+  {
+    title: "Employee",
+    dataIndex: "employeeName",
+    key: "employeename",
+  },
+  {
+    title: "Pay Period",
+    dataIndex: "payPeriod",
+    key: "payPeriod",
+    render: (payPeriod) => formatPayrollMonth(payPeriod),
+  },
+  {
+    title: "Gross Pay",
+    dataIndex: "grossPay",
+    key: "grosspay",
+    render: (amount) => `${amount?.toLocaleString()}`,
+  },
+  {
+    title: "Deductions",
+    dataIndex: "deductions",
+    key: "deductions",
+    render: (amount) => `${amount?.toLocaleString()}`,
+  },
+  {
+    title: "Net Pay",
+    dataIndex: "netPay",
+    key: "netPay",
+    render: (amount) => `${amount?.toLocaleString()}`,
+  },
   {
     title: "Actions",
     key: "actions",
@@ -318,11 +375,6 @@ export const getBenefitsColumns = (handleEditBenefit, handleDeleteBenefit) => [
       { text: "Inactive", value: "inactive" },
     ],
     onFilter: (value, record) => record.status === value,
-  },
-  {
-    title: "Enrollment Date",
-    dataIndex: "enrollmentDate",
-    key: "enrollmentDate",
   },
   {
     title: "Monthly Cost",

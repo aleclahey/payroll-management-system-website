@@ -1,6 +1,22 @@
 // API Configuration
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 
+// Utility function to format payroll month
+const formatPayrollMonth = (dateString) => {
+  if(!dateString.includes("-")) return dateString; // already formatted
+  const [year, month] = dateString.split('-');
+  const date = new Date(year, month - 1); // month - 1 because Date months are 0-indexed
+  const monthName = date.toLocaleString('default', { month: 'long' });
+  return `${monthName} ${year}`;
+};
+
+// // Utility function to convert readable month back to YYYY-MM format for API calls
+// const parsePayrollMonth = (readableMonth) => {
+//   const [monthName, year] = readableMonth.split(' ');
+//   const monthIndex = new Date(`${monthName} 1, ${year}`).getMonth() + 1;
+//   return `${year}-${String(monthIndex).padStart(2, '0')}`;
+// };
+
 // Generic API helper functions
 const apiCall = async (endpoint, options = {}) => {
   try {
@@ -81,7 +97,8 @@ export const api = {
       method: "POST",
       body: JSON.stringify({
         title: positionData.title,
-        fromdate: positionData.fromDate || new Date().toISOString().split("T")[0],
+        fromdate:
+          positionData.fromDate || new Date().toISOString().split("T")[0],
         todate: positionData.toDate || null,
       }),
     });
@@ -143,9 +160,7 @@ export const api = {
     ]);
 
     return employees.map((emp) => {
-      const department = departments.find(
-        (d) => d.id === emp.department
-      );
+      const department = departments.find((d) => d.id === emp.department);
       const position = positions.find((p) => p.id === emp.employeeposition);
       const hourlyEmp = hourlyEmployees.find((h) => h.employee === emp.id);
       const salariedEmp = salariedEmployees.find((s) => s.employee === emp.id);
@@ -212,7 +227,8 @@ export const api = {
     const data = await apiCall("/payroll-months/");
     return data.map((pm) => ({
       id: pm.id,
-      payrollMonth: pm.payrollmonth,
+      payrollMonth: formatPayrollMonth(pm.payrollmonth), // Format to readable month name
+      rawPayrollMonth: pm.payrollmonth, // Keep original format for API calls if needed
     }));
   },
 
@@ -220,18 +236,22 @@ export const api = {
   async getOrCreateDefaultPayrollMonth() {
     try {
       const payrollMonths = await apiCall("/payroll-months/");
-      
+
       // Get current month/year for default
       const currentDate = new Date();
-      const currentMonthYear = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-      
+      const currentMonthYear = `${currentDate.getFullYear()}-${String(
+        currentDate.getMonth() + 1
+      ).padStart(2, "0")}`;
+
       // Find existing payroll month for current period
-      let existingMonth = payrollMonths.find(pm => pm.payrollmonth === currentMonthYear);
-      
+      let existingMonth = payrollMonths.find(
+        (pm) => pm.payrollmonth === currentMonthYear
+      );
+
       if (existingMonth) {
         return existingMonth.id;
       }
-      
+
       // If no current month exists, create it
       const newPayrollMonth = await apiCall("/payroll-months/", {
         method: "POST",
@@ -239,7 +259,7 @@ export const api = {
           payrollmonth: currentMonthYear,
         }),
       });
-      
+
       return newPayrollMonth.id;
     } catch (error) {
       console.error("Error in getOrCreateDefaultPayrollMonth:", error);
@@ -248,7 +268,10 @@ export const api = {
         const payrollMonths = await apiCall("/payroll-months/");
         return payrollMonths.length > 0 ? payrollMonths[0].id : null;
       } catch (fallbackError) {
-        console.error("Fallback payroll month retrieval failed:", fallbackError);
+        console.error(
+          "Fallback payroll month retrieval failed:",
+          fallbackError
+        );
         return null;
       }
     }
@@ -300,7 +323,10 @@ export const api = {
       // Create a standard deduction for hourly employees
       const estimatedMonthlyEarnings = employeeData.hourlyRate * 160; // 40 hours/week * 4 weeks
       const deductionAmount = estimatedMonthlyEarnings * 0.1; // 10% deduction
-      const deductionId = await this.createDeduction("Standard Hourly", deductionAmount);
+      const deductionId = await this.createDeduction(
+        "Standard Hourly",
+        deductionAmount
+      );
 
       // Get or create a default payroll month
       const payrollMonthId = await this.getOrCreateDefaultPayrollMonth();
@@ -347,7 +373,9 @@ export const api = {
         }
 
         // Get payroll month ID - use existing or get default
-        const payrollMonthId = existingHourly.payrollmonth || await this.getOrCreateDefaultPayrollMonth();
+        const payrollMonthId =
+          existingHourly.payrollmonth ||
+          (await this.getOrCreateDefaultPayrollMonth());
 
         return apiCall(`/hourly-employees/${existingHourly.id}/`, {
           method: "PUT",
@@ -388,7 +416,10 @@ export const api = {
     try {
       // Create a standard deduction for salaried employees
       const deductionAmount = employeeData.salaryAmount * 0.1; // 10% deduction
-      const deductionId = await this.createDeduction("Standard Salary", deductionAmount);
+      const deductionId = await this.createDeduction(
+        "Standard Salary",
+        deductionAmount
+      );
 
       return apiCall("/salaried-employees/", {
         method: "POST",
@@ -453,13 +484,18 @@ export const api = {
 
   // Benefits APIs
   async fetchBenefits() {
-    const [benefits, employees] = await Promise.all([
+    const [benefits, employees, benefitPlans] = await Promise.all([
       apiCall("/benefits/"),
       apiCall("/employees/"),
+      this.fetchBenefitPlans(), // Corrected this line
     ]);
 
     return benefits.map((benefit) => {
       const employee = employees.find((e) => e.id === benefit.employee);
+      const benefitPlan = benefitPlans.find(
+        (bp) => bp.name === benefit.benefitplan
+      );
+
       return {
         id: benefit.id,
         employeeId: benefit.employee,
@@ -468,8 +504,7 @@ export const api = {
           : "Unknown",
         benefitplan: benefit.benefitplan,
         status: "active",
-        enrollmentDate: "2023-01-15",
-        cost: 450.0,
+        cost: benefitPlan?.monthlyCost || 0, // fallback in case not found
       };
     });
   },
@@ -511,7 +546,9 @@ export const api = {
       return {
         id: ts.id,
         employeeId: ts.employee,
-        employeeName: ts.employeename || (employee ? `${employee.firstname} ${employee.lastname}` : "Unknown"),
+        employeeName:
+          ts.employeename ||
+          (employee ? `${employee.firstname} ${employee.lastname}` : "Unknown"),
         date: new Date().toISOString().split("T")[0], // Current date as default
         clockIn: ts.clockin,
         clockOut: ts.clockout,
@@ -613,32 +650,107 @@ export const api = {
 
   // Payments APIs
   async fetchPayments() {
-    const [payments, employees, deductions] = await Promise.all([
+    const [
+      payments,
+      employees,
+      deductions,
+      timesheets,
+      hourlyEmployees,
+      salariedEmployees,
+      payrollMonths,
+    ] = await Promise.all([
       apiCall("/payments/"),
       apiCall("/employees/"),
       apiCall("/deductions/"),
+      apiCall("/timesheets/"),
+      apiCall("/hourly-employees/"),
+      apiCall("/salaried-employees/"),
+      apiCall("/payroll-months/"),
     ]);
 
-    return payments.map((payment) => {
-      const employee = employees.find((e) => e.id === payment.employee);
-      const deduction = deductions.find((d) => d.id === payment.deductions);
+    return payments
+      .map((payment) => {
+        const employee = employees.find((e) => e.id === payment.employee);
 
-      return {
-        id: payment.id,
-        employeeId: payment.employee,
-        employeeName: employee
-          ? `${employee.firstname} ${employee.lastname}`
-          : "Unknown",
-        grossPay: 5000,
-        deductions: deduction?.deductionamount || 0,
-        netPay: 4500,
-        payPeriod: "2024-01",
-        status: "pending",
-        overtimePay: payment.overtimepay || 0,
-      };
-    });
+        if (!employee) {
+          // Skip calculation for unknown employee
+          return null;
+        }
+
+        const hourly = hourlyEmployees.find(
+          (h) => h.employee === payment.employee
+        );
+        const salaried = salariedEmployees.find(
+          (s) => s.employee === payment.employee
+        );
+        const deduction = deductions.find((d) => d.id === payment.deductions);
+        
+        // Find the payroll month and format it
+        const payrollMonth = payrollMonths.find((pm) => pm.id === payment.payrollmonth);
+        const formattedPayPeriod = payrollMonth 
+          ? formatPayrollMonth(payrollMonth.payrollmonth)
+          : payment.payrollmonthname || "Unknown Period";
+
+        const employeeName = `${employee.firstname} ${employee.lastname}`;
+
+        let grossPay = 0;
+        let overtimePay = 0;
+        let totalHoursWorked = 0;
+        let totalOvertime = 0;
+
+        if (hourly) {
+          const employeeTimesheets = timesheets.filter(
+            (ts) => ts.employee === payment.employee
+          );
+
+          totalHoursWorked = employeeTimesheets.reduce(
+            (sum, ts) => sum + (ts.hoursworked || 0),
+            0
+          );
+
+          totalOvertime = employeeTimesheets.reduce(
+            (sum, ts) => sum + (ts.overtimehours || 0),
+            0
+          );
+
+          const regularHours = totalHoursWorked - totalOvertime;
+          const regularPay = hourly.hourlyrate * regularHours;
+          overtimePay = hourly.hourlyrate * 1.5 * totalOvertime;
+
+          grossPay = regularPay + overtimePay;
+        } else if (salaried) {
+          const period = payment.payrollperiod || "monthly";
+
+          if (period === "monthly") {
+            grossPay = salaried.salaryamount / 12;
+          } else if (period === "biweekly") {
+            grossPay = salaried.salaryamount / 26;
+          } else {
+            grossPay = salaried.salaryamount;
+          }
+
+          grossPay = Math.round(grossPay * 100) / 100;
+        }
+
+        const deductionAmount = deduction?.deductionamount || 0;
+        const netPay = grossPay - deductionAmount;
+
+        return {
+          id: payment.id,
+          employeeId: payment.employee,
+          employeeName: employeeName,
+          grossPay: Math.round(grossPay * 100) / 100,
+          deductions: deductionAmount,
+          netPay: Math.round(netPay * 100) / 100,
+          payPeriod: formattedPayPeriod, // Now formatted as "September 2025"
+          overtimePay: Math.round(overtimePay * 100) / 100,
+          totalHoursWorked,
+          totalOvertimeHours: totalOvertime,
+        };
+      })
+      .filter((payment) => payment !== null); // Remove entries with unknown employee
   },
-
+  
   async createPayment(paymentData) {
     return apiCall("/payments/", {
       method: "POST",
@@ -662,7 +774,7 @@ export const api = {
         description:
           "Comprehensive medical coverage including doctor visits, hospital stays, and prescription drugs",
         provider: "BlueCross BlueShield",
-        monthlyCost: 450.0,
+        monthlyCost: 150.0,
         employeeContribution: 150.0,
         employerContribution: 300.0,
         category: "Medical",
@@ -673,7 +785,7 @@ export const api = {
         description:
           "Dental coverage including cleanings, fillings, and major dental work",
         provider: "Delta Dental",
-        monthlyCost: 125.0,
+        monthlyCost: 75.0,
         employeeContribution: 25.0,
         employerContribution: 100.0,
         category: "Dental",
@@ -682,15 +794,15 @@ export const api = {
         id: 3,
         name: "Vision Insurance",
         description:
-          "Eye care coverage including exams, glasses, and contact lenses",
-        provider: "VSP Vision",
-        monthlyCost: 75.0,
-        employeeContribution: 15.0,
-        employerContribution: 60.0,
+          "Vision coverage including eye exams, glasses, and contact lenses",
+        provider: "EverBlue Vision",
+        monthlyCost: 50.0,
+        employeeContribution: 25.0,
+        employerContribution: 100.0,
         category: "Vision",
       },
     ];
   },
 };
 
-export { apiCall };
+export { apiCall, formatPayrollMonth };
