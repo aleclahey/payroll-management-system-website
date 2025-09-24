@@ -10,13 +10,6 @@ const formatPayrollMonth = (dateString) => {
   return `${monthName} ${year}`;
 };
 
-// // Utility function to convert readable month back to YYYY-MM format for API calls
-// const parsePayrollMonth = (readableMonth) => {
-//   const [monthName, year] = readableMonth.split(' ');
-//   const monthIndex = new Date(`${monthName} 1, ${year}`).getMonth() + 1;
-//   return `${year}-${String(monthIndex).padStart(2, '0')}`;
-// };
-
 // Generic API helper functions
 const apiCall = async (endpoint, options = {}) => {
   try {
