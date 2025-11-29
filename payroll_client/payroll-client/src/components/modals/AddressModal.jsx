@@ -32,26 +32,28 @@ export const AddressModal = ({
   onSuccess,
   onCancel,
   onEditAddress,
-  onDeleteAddress,
+  // onDeleteAddress,
   onAddAddress
 }) => {
   const [form] = Form.useForm();
 
   useEffect(() => {
-    if (editingAddress && editingAddress.id) {
-      form.setFieldsValue({
-        addressTypeId: editingAddress.addressTypeId,
-        street: editingAddress.street,
-        city: editingAddress.city,
-        province: editingAddress.province,
-        postalCode: editingAddress.postalCode,
-        country: editingAddress.country,
-        isPrimary: editingAddress.isPrimary,
-      });
-    } else {
-      form.resetFields();
+    if (visible) {
+      if (editingAddress && editingAddress.id) {
+        form.setFieldsValue({
+          addressTypeId: editingAddress.addressTypeId,
+          street: editingAddress.street,
+          city: editingAddress.city,
+          province: editingAddress.province,
+          postalCode: editingAddress.postalCode,
+          country: editingAddress.country,
+          isPrimary: editingAddress.isPrimary,
+        });
+      } else {
+        form.resetFields();
+      }
     }
-  }, [editingAddress, form]);
+  }, [editingAddress, form, visible]);
 
   const handleSaveAddress = async () => {
     try {

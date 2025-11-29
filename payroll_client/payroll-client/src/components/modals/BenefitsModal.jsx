@@ -27,17 +27,19 @@ export const BenefitModal = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (editingBenefit) {
-      form.setFieldsValue({
-        employeeId: editingBenefit.employeeId,
-        benefitPlan: editingBenefit.benefitplan,
-        enrollmentDate: editingBenefit.enrollmentDate,
-        status: editingBenefit.status,
-        notes: editingBenefit.notes,
-      });
-    } else {
-      form.resetFields();
-      form.setFieldsValue({ status: 'active' });
+    if (visible) {
+      if (editingBenefit) {
+        form.setFieldsValue({
+          employeeId: editingBenefit.employeeId,
+          benefitPlan: editingBenefit.benefitplan,
+          enrollmentDate: editingBenefit.enrollmentDate,
+          status: editingBenefit.status,
+          notes: editingBenefit.notes,
+        });
+      } else {
+        form.resetFields();
+        form.setFieldsValue({ status: 'active' });
+      }
     }
   }, [editingBenefit, form, visible]);
 

@@ -16,7 +16,6 @@ import { PlusOutlined } from '@ant-design/icons';
 import { hoursWorkedColumns } from '../TableColumns';
 
 const { Option } = Select;
-const { TabPane } = Tabs;
 const { Title } = Typography;
 
 export const Timesheet = ({
@@ -29,72 +28,13 @@ export const Timesheet = ({
   timesheetColumns,
   loading,
   onAddTimesheet
-}) => (
-  <div>
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 16,
-      }}
-    >
-      <Title level={2}>Timesheet Management</Title>
-      <Button
-        type="primary"
-        icon={<PlusOutlined />}
-        onClick={onAddTimesheet}
-      >
-        Add Timesheet
-      </Button>
-    </div>
-
-    <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-      <Col xs={24} sm={6}>
-        <Card>
-          <Statistic
-            title="Total Hours This Week"
-            value={totalHoursThisWeek}
-            suffix="h"
-            valueStyle={{ color: "#3f8600" }}
-          />
-        </Card>
-      </Col>
-      <Col xs={24} sm={6}>
-        <Card>
-          <Statistic
-            title="Pending Approvals"
-            value={pendingTimesheets}
-            valueStyle={{ color: "#faad14" }}
-          />
-        </Card>
-      </Col>
-      <Col xs={24} sm={6}>
-        <Card>
-          <Statistic
-            title="Overtime Hours"
-            value={hoursWorked.reduce((sum, hw) => sum + hw.overtimeHours, 0)}
-            suffix="h"
-            valueStyle={{ color: "#cf1322" }}
-          />
-        </Card>
-      </Col>
-      <Col xs={24} sm={6}>
-        <Card>
-          <Statistic
-            title="Average Hours/Employee"
-            value={totalEmployees > 0 ? totalHoursThisWeek / totalEmployees : 0}
-            precision={1}
-            suffix="h"
-            valueStyle={{ color: "#1890ff" }}
-          />
-        </Card>
-      </Col>
-    </Row>
-
-    <Card>
-      <Tabs defaultActiveKey="1">
-        <TabPane tab="Daily Timesheets" key="1">
+}) => {
+  const tabItems = [
+    {
+      key: '1',
+      label: 'Daily Timesheets',
+      children: (
+        <>
           <div style={{ marginBottom: 16 }}>
             <Space wrap>
               <DatePicker.RangePicker />
@@ -132,47 +72,128 @@ export const Timesheet = ({
             }}
             scroll={{ x: 'max-content' }}
           />
-        </TabPane>
-        <TabPane tab="Weekly Summary" key="2">
-          <Table
-            dataSource={hoursWorked}
-            columns={hoursWorkedColumns}
-            rowKey="employeeId"
-            loading={loading}
-            pagination={{
-              showSizeChanger: true,
-              showTotal: (total) => `Total ${total} employees`,
-            }}
-            scroll={{ x: 'max-content' }}
-          />
-        </TabPane>
-        <TabPane tab="Overtime Report" key="3">
-          <Table
-            dataSource={hoursWorked.filter((hw) => hw.overtimeHours > 0)}
-            columns={hoursWorkedColumns}
-            rowKey="employeeId"
-            loading={loading}
-            locale={{
-              emptyText: "No overtime hours recorded this week",
-            }}
-            scroll={{ x: 'max-content' }}
-          />
-        </TabPane>
-        <TabPane tab="Approval Queue" key="4">
-          <Table
-            dataSource={timesheets.filter((ts) => ts.status === 'pending')}
-            columns={timesheetColumns}
-            rowKey="id"
-            loading={loading}
-            locale={{
-              emptyText: "No timesheets pending approval",
-            }}
-            scroll={{ x: 'max-content' }}
-          />
-        </TabPane>
-      </Tabs>
-    </Card>
-  </div>
-);
+        </>
+      ),
+    },
+    {
+      key: '2',
+      label: 'Weekly Summary',
+      children: (
+        <Table
+          dataSource={hoursWorked}
+          columns={hoursWorkedColumns}
+          rowKey="employeeId"
+          loading={loading}
+          pagination={{
+            showSizeChanger: true,
+            showTotal: (total) => `Total ${total} employees`,
+          }}
+          scroll={{ x: 'max-content' }}
+        />
+      ),
+    },
+    {
+      key: '3',
+      label: 'Overtime Report',
+      children: (
+        <Table
+          dataSource={hoursWorked.filter((hw) => hw.overtimeHours > 0)}
+          columns={hoursWorkedColumns}
+          rowKey="employeeId"
+          loading={loading}
+          locale={{
+            emptyText: "No overtime hours recorded this week",
+          }}
+          scroll={{ x: 'max-content' }}
+        />
+      ),
+    },
+    {
+      key: '4',
+      label: 'Approval Queue',
+      children: (
+        <Table
+          dataSource={timesheets.filter((ts) => ts.status === 'pending')}
+          columns={timesheetColumns}
+          rowKey="id"
+          loading={loading}
+          locale={{
+            emptyText: "No timesheets pending approval",
+          }}
+          scroll={{ x: 'max-content' }}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+        }}
+      >
+        <Title level={2}>Timesheet Management</Title>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={onAddTimesheet}
+        >
+          Add Timesheet
+        </Button>
+      </div>
+
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24} sm={6}>
+          <Card>
+            <Statistic
+              title="Total Hours This Week"
+              value={totalHoursThisWeek}
+              suffix="h"
+              valueStyle={{ color: "#3f8600" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card>
+            <Statistic
+              title="Pending Approvals"
+              value={pendingTimesheets}
+              valueStyle={{ color: "#faad14" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card>
+            <Statistic
+              title="Overtime Hours"
+              value={hoursWorked.reduce((sum, hw) => sum + hw.overtimeHours, 0)}
+              suffix="h"
+              valueStyle={{ color: "#cf1322" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card>
+            <Statistic
+              title="Average Hours/Employee"
+              value={totalEmployees > 0 ? totalHoursThisWeek / totalEmployees : 0}
+              precision={1}
+              suffix="h"
+              valueStyle={{ color: "#1890ff" }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <Card>
+        <Tabs defaultActiveKey="1" items={tabItems} />
+      </Card>
+    </div>
+  );
+};
 
 export default Timesheet;

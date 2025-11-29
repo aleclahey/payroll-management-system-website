@@ -12,7 +12,6 @@ import { DownloadOutlined } from '@ant-design/icons';
 import { paymentColumns } from '../TableColumns';
 import { api } from '../../api/api'; // adjust the import path if needed
 
-const { TabPane } = Tabs;
 const { Title } = Typography;
 
 export const Payroll = ({
@@ -34,6 +33,35 @@ export const Payroll = ({
       setProcessing(false);
     }
   };
+
+  const tabItems = [
+    {
+      key: '1',
+      label: 'Current Period',
+      children: (
+        <>
+          <Alert
+            message="Payroll Status"
+            description={`${pendingPayments} payments pending for current period`}
+            type="info"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+          <Table
+            dataSource={payments}
+            columns={paymentColumns}
+            rowKey="id"
+            loading={loading}
+            pagination={{
+              showSizeChanger: true,
+              showQuickJumper: true,
+            }}
+            scroll={{ x: 'max-content' }}
+          />
+        </>
+      ),
+    },
+  ];
 
   return (
     <div>
@@ -58,28 +86,7 @@ export const Payroll = ({
       </div>
 
       <Card>
-        <Tabs defaultActiveKey="1">
-          <TabPane tab="Current Period" key="1">
-            <Alert
-              message="Payroll Status"
-              description={`${pendingPayments} payments pending for current period`}
-              type="info"
-              showIcon
-              style={{ marginBottom: 16 }}
-            />
-            <Table
-              dataSource={payments}
-              columns={paymentColumns}
-              rowKey="id"
-              loading={loading}
-              pagination={{
-                showSizeChanger: true,
-                showQuickJumper: true,
-              }}
-              scroll={{ x: 'max-content' }}
-            />
-          </TabPane>
-        </Tabs>
+        <Tabs defaultActiveKey="1" items={tabItems} />
       </Card>
     </div>
   );

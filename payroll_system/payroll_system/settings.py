@@ -80,12 +80,12 @@ WSGI_APPLICATION = 'payroll_system.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'mysql.connector.django',
         'NAME': 'aleclaheypayroll',
         'USER': 'root',
         'PASSWORD': 'password',
         'HOST': 'localhost',      # or your MySQL server IP
-        'PORT': '3307',
+        'PORT': '3306',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },

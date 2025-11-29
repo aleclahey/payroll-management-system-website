@@ -28,20 +28,22 @@ export const TimesheetModal = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (editingTimesheet) {
-      form.setFieldsValue({
-        employee: editingTimesheet.employeeId,
-        date: editingTimesheet.date,
-        clockIn: editingTimesheet.clockIn,
-        clockOut: editingTimesheet.clockOut,
-        breakTime: editingTimesheet.breakTime || 30,
-        notes: editingTimesheet.notes,
-      });
-      setTotalHours(editingTimesheet.totalHours || 0);
-    } else {
-      form.resetFields();
-      form.setFieldsValue({ breakTime: 30 });
-      setTotalHours(0);
+    if (visible) {
+      if (editingTimesheet) {
+        form.setFieldsValue({
+          employee: editingTimesheet.employeeId,
+          date: editingTimesheet.date,
+          clockIn: editingTimesheet.clockIn,
+          clockOut: editingTimesheet.clockOut,
+          breakTime: editingTimesheet.breakTime || 30,
+          notes: editingTimesheet.notes,
+        });
+        setTotalHours(editingTimesheet.totalHours || 0);
+      } else {
+        form.resetFields();
+        form.setFieldsValue({ breakTime: 30 });
+        setTotalHours(0);
+      }
     }
   }, [editingTimesheet, form, visible]);
 

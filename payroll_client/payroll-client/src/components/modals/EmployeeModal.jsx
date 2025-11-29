@@ -29,25 +29,27 @@ export const EmployeeModal = ({
   const [customPosition, setCustomPosition] = useState("");
 
   useEffect(() => {
-    if (editingEmployee) {
-      form.setFieldsValue({
-        firstName: editingEmployee.firstName,
-        lastName: editingEmployee.lastName,
-        gender: editingEmployee.gender,
-        hireDate: editingEmployee.hireDate,
-        departmentId: editingEmployee.departmentId,
-        positionId: editingEmployee.positionId,
-        managerEmployeeId: editingEmployee.managerEmployeeId,
-        type: editingEmployee.type,
-        salary: editingEmployee.salary,
-        hourlyRate: editingEmployee.hourlyRate,
-      });
-      setEmployeeType(editingEmployee.type || "hourly");
-    } else {
-      form.resetFields();
-      setEmployeeType("hourly");
+    if (visible) {
+      if (editingEmployee) {
+        form.setFieldsValue({
+          firstName: editingEmployee.firstName,
+          lastName: editingEmployee.lastName,
+          gender: editingEmployee.gender,
+          hireDate: editingEmployee.hireDate,
+          departmentId: editingEmployee.departmentId,
+          positionId: editingEmployee.positionId,
+          managerEmployeeId: editingEmployee.managerEmployeeId,
+          type: editingEmployee.type,
+          salary: editingEmployee.salary,
+          hourlyRate: editingEmployee.hourlyRate,
+        });
+        setEmployeeType(editingEmployee.type || "hourly");
+      } else {
+        form.resetFields();
+        setEmployeeType("hourly");
+      }
+      setCustomPosition(""); // Reset custom position when modal opens
     }
-    setCustomPosition(""); // Reset custom position when modal opens/closes
   }, [editingEmployee, form, visible]);
 
   const handleOk = async () => {
@@ -223,7 +225,7 @@ export const EmployeeModal = ({
       onOk={handleOk}
       onCancel={handleCancel}
       width={800}
-      destroyOnClose
+      destroyOnHidden
       confirmLoading={loading}
     >
       <Form
@@ -272,7 +274,7 @@ export const EmployeeModal = ({
               label="Hire Date"
               // rules={[{ required: true, message: "Please select hire date" }]}
             >
-              {/* <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD" /> */}
+              <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD" />
             </Form.Item>
           </Col>
           <Col span={8}>
@@ -357,16 +359,13 @@ export const EmployeeModal = ({
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              name={employeeType === "salaried" ? "salary" : "hourlyRate"}
-              label={
-                employeeType === "salaried" ? "Annual Salary" : "Hourly Rate"
-              }
+              name="salary"
+              label="Annual Salary"
+              hidden={employeeType !== "salaried"}
               rules={[
                 {
-                  required: true,
-                  message: `Please enter ${
-                    employeeType === "salaried" ? "salary" : "hourly rate"
-                  }`,
+                  required: employeeType === "salaried",
+                  message: "Please enter salary",
                 },
                 {
                   type: "number",
@@ -377,9 +376,34 @@ export const EmployeeModal = ({
             >
               <InputNumber
                 style={{ width: "100%" }}
-                placeholder={`Enter ${
-                  employeeType === "salaried" ? "annual salary" : "hourly rate"
-                }`}
+                placeholder="Enter annual salary"
+                min={0}
+                precision={2}
+                formatter={(value) =>
+                  `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+              />
+            </Form.Item>
+            <Form.Item
+              name="hourlyRate"
+              label="Hourly Rate"
+              hidden={employeeType !== "hourly"}
+              rules={[
+                {
+                  required: employeeType === "hourly",
+                  message: "Please enter hourly rate",
+                },
+                {
+                  type: "number",
+                  min: 0,
+                  message: "Must be a positive number",
+                },
+              ]}
+            >
+              <InputNumber
+                style={{ width: "100%" }}
+                placeholder="Enter hourly rate"
                 min={0}
                 precision={2}
                 formatter={(value) =>
