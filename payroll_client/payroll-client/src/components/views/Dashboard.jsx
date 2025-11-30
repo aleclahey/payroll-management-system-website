@@ -25,6 +25,7 @@ export const Dashboard = ({
   hoursWorked,
   payments,
   departments,
+  onNavigate,
 }) => (
   <div>
     <Title level={2}>Dashboard</Title>
@@ -77,7 +78,7 @@ export const Dashboard = ({
       <Col xs={24} lg={12}>
         <Card
           title="Recent Timesheets"
-          extra={<Button type="primary">View All</Button>}
+          extra={<Button type="primary" onClick={() => onNavigate?.('timesheets')}>View All</Button>}
         >
           <Table
             dataSource={timesheets.slice(0, 5)}
@@ -162,7 +163,7 @@ export const Dashboard = ({
       <Col xs={24} lg={16}>
         <Card
           title="Recent Payments"
-          extra={<Button type="primary">View All</Button>}
+          extra={<Button type="primary" onClick={() => onNavigate?.('payroll')}>View All</Button>}
         >
           <Table
             dataSource={payments.slice(0, 5)}

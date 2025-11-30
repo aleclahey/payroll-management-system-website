@@ -341,6 +341,7 @@ const Home = () => {
             payments={payments}
             departments={departments}
             timesheetColumns={timesheetColumns}
+            onNavigate={(section) => setCurrent(section)}
           />
         );
       case "employees":
