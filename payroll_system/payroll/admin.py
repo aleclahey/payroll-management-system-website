@@ -68,8 +68,8 @@ class SalariedEmployeeAdmin(admin.ModelAdmin):
 
 @admin.register(Benefits)
 class BenefitsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'employee', 'benefitplan')
-    list_filter = ('benefitplan',)
+    list_display = ('id', 'employee', 'benefitplan', 'status')
+    list_filter = ('benefitplan', 'status')
     raw_id_fields = ('employee',)
 
 

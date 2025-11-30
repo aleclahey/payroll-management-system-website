@@ -337,10 +337,14 @@ class BenefitsViewSet(viewsets.ModelViewSet):
     def byplan(self, request):
         """Group benefits by plan type"""
         plantype = request.query_params.get('plantype')
+        status = request.query_params.get('status')  # Add status filter
+        
+        benefits = Benefits.objects.all()
+        
         if plantype:
-            benefits = Benefits.objects.filter(benefitplan__icontains=plantype)
-        else:
-            benefits = Benefits.objects.all()
+            benefits = benefits.filter(benefitplan__icontains=plantype)
+        if status:
+            benefits = benefits.filter(status=status)
         
         serializer = BenefitsSerializer(benefits, many=True)
         return Response(serializer.data)
@@ -348,10 +352,18 @@ class BenefitsViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def plansummary(self, request):
         """Get summary of benefit plans"""
-        plansummary = Benefits.objects.values('benefitplan').annotate(
+        plansummary = Benefits.objects.values('benefitplan', 'status').annotate(
             employeecount=Count('employee')
         ).order_by('-employeecount')
         return Response(list(plansummary))
+    
+    @action(detail=False, methods=['get'])
+    def bystatus(self, request):
+        """Get benefits filtered by status"""
+        status = request.query_params.get('status', 'active')
+        benefits = Benefits.objects.filter(status=status)
+        serializer = BenefitsSerializer(benefits, many=True)
+        return Response(serializer.data)
 
 
 class TimeSheetViewSet(viewsets.ModelViewSet):

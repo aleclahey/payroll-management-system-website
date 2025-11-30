@@ -219,18 +219,29 @@ class SalariedEmployee(models.Model):
 
 
 class Benefits(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('pending', 'Pending'),
+        ('inactive', 'Inactive'),
+    ]
+    
     employee = models.ForeignKey(
         Employee, 
         on_delete=models.CASCADE,
         db_column='EmployeeID'
     )
     benefitplan = models.CharField(max_length=60)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
     
     class Meta:
         db_table = 'Benefits'
     
     def __str__(self):
-        return f"{self.employee} - {self.benefitplan}"
+        return f"{self.employee} - {self.benefitplan} ({self.status})"
 
 
 class TimeSheet(models.Model):
