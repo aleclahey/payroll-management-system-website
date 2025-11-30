@@ -9,9 +9,11 @@ import {
 import { formatPayrollMonth } from "../api/api";
 
 // Employee Table Columns
+// Employee Table Columns
 export const getEmployeeColumns = (
   handleEditEmployee,
-  handleDeleteEmployee
+  handleDeleteEmployee,
+  handleManageAddresses   // ✅ added
 ) => [
   {
     title: "Name",
@@ -27,7 +29,7 @@ export const getEmployeeColumns = (
     title: "Department",
     dataIndex: "department",
     key: "department",
-    filters: [], // Will be populated dynamically with department data
+    filters: [], // Will be filled dynamically from Home.jsx
     onFilter: (value, record) => record.department === value,
   },
   {
@@ -61,93 +63,38 @@ export const getEmployeeColumns = (
     key: "actions",
     render: (_, record) => (
       <Space>
+        {/* EDIT BUTTON */}
         <Button
           icon={<EditOutlined />}
           size="small"
-          onClick={() => handleEditEmployee(record)}
+          onClick={() => handleEditEmployee(record)}  // ✅ works properly
         >
           Edit
         </Button>
+
+        {/* DELETE BUTTON */}
         <Button
           icon={<DeleteOutlined />}
           size="small"
           danger
-          onClick={() =>
-            handleDeleteEmployee && handleDeleteEmployee(record.id)
-          }
+          onClick={() => handleDeleteEmployee(record.id)}
         >
           Delete
+        </Button>
+
+        {/* MANAGE ADDRESSES BUTTON */}
+        <Button
+          size="small"
+          type="primary"
+          onClick={() => handleManageAddresses(record)}
+        >
+          Addresses
         </Button>
       </Space>
     ),
   },
 ];
 
-// Payment Table Columns
-export const getPaymentColumns = (
-  handleDeletePayment,
-  deletingIds = new Set()
-) => [
-  {
-    title: "Employee",
-    dataIndex: "employeeName",
-    key: "employeename",
-  },
-  {
-    title: "Pay Period",
-    dataIndex: "payPeriod",
-    key: "payPeriod",
-    render: (payPeriod) => formatPayrollMonth(payPeriod),
-  },
-  {
-    title: "Gross Pay",
-    dataIndex: "grossPay",
-    key: "grosspay",
-    render: (amount) => `${amount?.toLocaleString()}`,
-  },
-  {
-    title: "Deductions",
-    dataIndex: "deductions",
-    key: "deductions",
-    render: (amount) => `${amount?.toLocaleString()}`,
-  },
-  {
-    title: "Net Pay",
-    dataIndex: "netPay",
-    key: "netPay",
-    render: (amount) => `${amount?.toLocaleString()}`,
-  },
-  {
-    title: "Actions",
-    key: "actions",
-    render: (_, record) => (
-      <Space>
-        <Button size="small" icon={<DownloadOutlined />}>
-          Export
-        </Button>
-        {handleDeletePayment && (
-          <Popconfirm
-            title="Delete Payment"
-            description="Are you sure you want to delete this payment? This action cannot be undone."
-            onConfirm={() => handleDeletePayment(record.id)}
-            okText="Yes, Delete"
-            cancelText="Cancel"
-            okType="danger"
-          >
-            <Button
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              loading={deletingIds.has(record.id)}
-            >
-              Delete
-            </Button>
-          </Popconfirm>
-        )}
-      </Space>
-    ),
-  },
-];
 
 // Legacy payment columns for backward compatibility
 export const paymentColumns = [

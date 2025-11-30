@@ -11,6 +11,7 @@ import {
   notification,
 } from "antd";
 import { api } from "../../api/api";
+import daysjs from "dayjs";
 
 const { Option } = Select;
 
@@ -35,7 +36,9 @@ export const EmployeeModal = ({
           firstName: editingEmployee.firstName,
           lastName: editingEmployee.lastName,
           gender: editingEmployee.gender,
-          hireDate: editingEmployee.hireDate,
+          hireDate: editingEmployee.hireDate
+            ? daysjs(editingEmployee.hireDate)
+            : null,
           departmentId: editingEmployee.departmentId,
           positionId: editingEmployee.positionId,
           managerEmployeeId: editingEmployee.managerEmployeeId,
@@ -256,7 +259,9 @@ export const EmployeeModal = ({
             <Form.Item
               name="type"
               label="Employee Type"
-              rules={[{ required: true, message: "Please select employee type" }]}
+              rules={[
+                { required: true, message: "Please select employee type" },
+              ]}
             >
               <Select onChange={setEmployeeType} placeholder="Select type">
                 <Option value="hourly">Hourly</Option>
@@ -366,7 +371,11 @@ export const EmployeeModal = ({
                   required: employeeType === "hourly",
                   message: "Please enter hourly rate",
                 },
-                { type: "number", min: 0, message: "Must be a positive number" },
+                {
+                  type: "number",
+                  min: 0,
+                  message: "Must be a positive number",
+                },
               ]}
             >
               <InputNumber

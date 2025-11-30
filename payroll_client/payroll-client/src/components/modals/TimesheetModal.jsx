@@ -11,6 +11,7 @@ import {
   Form,
   notification
 } from 'antd';
+import dayjs from "dayjs";
 import { api } from '../../api/api';
 
 const { Option } = Select;
@@ -32,7 +33,7 @@ export const TimesheetModal = ({
       if (editingTimesheet) {
         form.setFieldsValue({
           employee: editingTimesheet.employeeId,
-          date: editingTimesheet.date,
+          date: editingTimesheet.date ? dayjs(editingTimesheet.date) : null,
           clockIn: editingTimesheet.clockIn,
           clockOut: editingTimesheet.clockOut,
           breakTime: editingTimesheet.breakTime || 30,
@@ -74,6 +75,12 @@ export const TimesheetModal = ({
     try {
       setLoading(true);
       const values = await form.validateFields();
+
+      // Format date
+      if (values.date?.format) {
+        values.date = values.date.format("YYYY-MM-DD");
+      }
+
       values.totalHours = totalHours;
       
       if (editingTimesheet) {
@@ -83,7 +90,6 @@ export const TimesheetModal = ({
           description: "Timesheet updated successfully",
         });
       } else {
-        console.log(values);
         await api.createTimesheet(values);
         notification.success({
           message: "Success",

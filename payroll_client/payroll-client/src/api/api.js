@@ -480,7 +480,7 @@ export const api = {
     const [benefits, employees, benefitPlans] = await Promise.all([
       apiCall("/benefits/"),
       apiCall("/employees/"),
-      this.fetchBenefitPlans(), // Corrected this line
+      this.fetchBenefitPlans(),
     ]);
 
     return benefits.map((benefit) => {
@@ -496,19 +496,53 @@ export const api = {
           ? `${employee.firstname} ${employee.lastname}`
           : "Unknown",
         benefitplan: benefit.benefitplan,
-        status: "active",
-        cost: benefitPlan?.monthlyCost || 0, // fallback in case not found
+        enrollmentDate: benefit.enrollmentdate,
+        status: benefit.status || "active", // Use actual status from database
+        notes: benefit.notes,
+        cost: benefitPlan?.monthlyCost || 0,
       };
     });
   },
 
   async createBenefit(benefitData) {
+    // Format enrollmentDate if it's a moment/dayjs object
+    const enrollmentDate = benefitData.enrollmentDate?.format 
+      ? benefitData.enrollmentDate.format("YYYY-MM-DD")
+      : benefitData.enrollmentDate || new Date().toISOString().split("T")[0];
+
     return apiCall("/benefits/", {
       method: "POST",
       body: JSON.stringify({
         employee: benefitData.employeeId,
         benefitplan: benefitData.benefitPlan,
+        enrollmentdate: enrollmentDate,
+        status: benefitData.status || "active",
+        notes: benefitData.notes || "",
       }),
+    });
+  },
+
+  async updateBenefit(id, benefitData) {
+    // Format enrollmentDate if it's a moment/dayjs object
+    const enrollmentDate = benefitData.enrollmentDate?.format 
+      ? benefitData.enrollmentDate.format("YYYY-MM-DD")
+      : benefitData.enrollmentDate;
+
+    return apiCall(`/benefits/${id}/`, {
+      method: "PUT",
+      body: JSON.stringify({
+        employee: benefitData.employeeId,
+        benefitplan: benefitData.benefitPlan,
+        enrollmentdate: enrollmentDate,
+        status: benefitData.status,
+        notes: benefitData.notes || "",
+      }),
+    });
+  },
+
+  async deleteBenefit(id) {
+    return apiCall(`/benefits/${id}/`, {
+      method: "DELETE",
     });
   },
 
@@ -735,13 +769,13 @@ export const api = {
           grossPay: Math.round(grossPay * 100) / 100,
           deductions: deductionAmount,
           netPay: Math.round(netPay * 100) / 100,
-          payPeriod: formattedPayPeriod, // Now formatted as "September 2025"
+          payPeriod: formattedPayPeriod,
           overtimePay: Math.round(overtimePay * 100) / 100,
           totalHoursWorked,
           totalOvertimeHours: totalOvertime,
         };
       })
-      .filter((payment) => payment !== null); // Remove entries with unknown employee
+      .filter((payment) => payment !== null);
   },
   
   async createPayment(paymentData) {
