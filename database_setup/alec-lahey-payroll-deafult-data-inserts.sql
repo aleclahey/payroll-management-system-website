@@ -5,28 +5,28 @@ Author:			Alec Lahey
 Date:			June 2024
 */
 
--- USE AlecLaheyPayroll;
+USE AlecLaheyPayroll;
 
--- INSERT INTO department (DepartmentName, DepartmentDesc) VALUES ('HR', 'Human Resources Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('IT', 'Information Technology Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('FIN', 'Finance Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('MKT', 'Marketing Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('OPS', 'Operations Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('SALES', 'Sales Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('DEV', 'Development Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('SUP', 'Support Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('PRD', 'Production Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('ACC', 'Accounting Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('QA', 'Quality Assurance Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('CS', 'Customer Service Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('ENG', 'Engineering Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('LOG', 'Logistics Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('PUR', 'Purchasing Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('PR', 'Public Relations Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('ADM', 'Administration Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('RND', 'Research and Development Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('LEGAL', 'Legal Department');
--- INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('EDU', 'Education Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('HR', 'Human Resources Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('IT', 'Information Technology Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('FIN', 'Finance Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('MKT', 'Marketing Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('OPS', 'Operations Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('SALES', 'Sales Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('DEV', 'Development Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('SUP', 'Support Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('PRD', 'Production Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('ACC', 'Accounting Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('QA', 'Quality Assurance Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('CS', 'Customer Service Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('ENG', 'Engineering Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('LOG', 'Logistics Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('PUR', 'Purchasing Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('PR', 'Public Relations Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('ADM', 'Administration Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('RND', 'Research and Development Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('LEGAL', 'Legal Department');
+INSERT INTO Department (DepartmentName, DepartmentDesc) VALUES ('EDU', 'Education Department');
 
 INSERT INTO EmployeePosition (Title, FromDate, ToDate) VALUES ('Manager', '2018-03-15', NULL);
 INSERT INTO EmployeePosition (Title, FromDate, ToDate) VALUES ('Software Engineer', '2019-07-22', NULL);
