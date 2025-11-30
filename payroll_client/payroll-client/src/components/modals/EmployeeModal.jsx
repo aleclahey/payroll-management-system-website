@@ -48,7 +48,7 @@ export const EmployeeModal = ({
         form.resetFields();
         setEmployeeType("hourly");
       }
-      setCustomPosition(""); // Reset custom position when modal opens
+      setCustomPosition("");
     }
   }, [editingEmployee, form, visible]);
 
@@ -57,21 +57,14 @@ export const EmployeeModal = ({
       setLoading(true);
       const values = await form.validateFields();
 
-      // Convert hireDate to 'YYYY-MM-DD' format if it exists
-      if (values.hireDate) {
-        // If it's a moment object (from DatePicker), format it
-        if (values.hireDate.format) {
-          values.hireDate = values.hireDate.format("YYYY-MM-DD");
-        } else {
-          // Fallback to current date
-          values.hireDate = new Date().toISOString().split("T")[0];
-        }
+      // fix hireDate formatting
+      if (values.hireDate?.format) {
+        values.hireDate = values.hireDate.format("YYYY-MM-DD");
       } else {
-        // Default to current date if no hire date provided
         values.hireDate = new Date().toISOString().split("T")[0];
       }
 
-      // Handle custom position creation
+      // Create custom position
       if (customPosition && !values.positionId) {
         try {
           const newPosition = await api.createPosition({
@@ -86,12 +79,11 @@ export const EmployeeModal = ({
             description: `New position "${customPosition}" has been created.`,
           });
         } catch (err) {
-          console.error("Failed to create custom position:", err);
           notification.error({
             message: "Error",
-            description:
-              "Could not create the custom position. Please try again.",
+            description: "Could not create the custom position.",
           });
+          console.log(err);
           setLoading(false);
           return;
         }
@@ -100,7 +92,7 @@ export const EmployeeModal = ({
       if (editingEmployee) {
         await api.updateEmployee(editingEmployee.id, values);
 
-        // Update salary/hourly rate information when editing
+        // update salary info
         if (employeeType === "salaried" && values.salary) {
           try {
             await api.updateOrCreateSalary({
@@ -110,17 +102,16 @@ export const EmployeeModal = ({
               id: editingEmployee.id,
               salaryAmount: values.salary,
             });
-            console.log("Salary record updated successfully");
-          } catch (salaryError) {
-            console.error("Failed to update salary record:", salaryError);
+          } catch (err) {
             notification.warning({
               message: "Partial Success",
-              description:
-                "Employee updated but salary record failed to update",
+              description: "Employee updated but salary failed to update",
             });
+            console.log(err);
           }
         }
 
+        // update hourly info
         if (employeeType === "hourly" && values.hourlyRate) {
           try {
             await api.updateOrCreateHourlyEmployee({
@@ -130,17 +121,12 @@ export const EmployeeModal = ({
               id: editingEmployee.id,
               hourlyRate: values.hourlyRate,
             });
-            console.log("Hourly employee record updated successfully");
-          } catch (hourlyError) {
-            console.error(
-              "Failed to update hourly employee record:",
-              hourlyError
-            );
+          } catch (err) {
             notification.warning({
               message: "Partial Success",
-              description:
-                "Employee updated but hourly rate record failed to update",
+              description: "Employee updated but hourly rate failed to update",
             });
+            console.log(err);
           }
         }
 
@@ -149,46 +135,37 @@ export const EmployeeModal = ({
           description: "Employee updated successfully",
         });
       } else {
-        // Create the employee first
         const newEmployee = await api.createEmployee(values);
 
-        // If it's a salaried employee, create salary record
         if (employeeType === "salaried" && values.salary) {
           try {
             await api.createSalary({
               ...values,
-              id: newEmployee.id, // Use the newly created employee ID
+              id: newEmployee.id,
               salaryAmount: values.salary,
             });
-            console.log("Salary record created successfully");
-          } catch (salaryError) {
-            console.error("Failed to create salary record:", salaryError);
+          } catch (err) {
             notification.warning({
               message: "Partial Success",
-              description: "Employee created but salary record failed to save",
+              description: "Employee created but salary failed to save",
             });
+            console.log(err);
           }
         }
 
-        // If it's an hourly employee, create hourly employee record
         if (employeeType === "hourly" && values.hourlyRate) {
           try {
             await api.createHourlyEmployee({
               ...values,
-              id: newEmployee.id, // Use the newly created employee ID
+              id: newEmployee.id,
               hourlyRate: values.hourlyRate,
             });
-            console.log("Hourly employee record created successfully");
-          } catch (hourlyError) {
-            console.error(
-              "Failed to create hourly employee record:",
-              hourlyError
-            );
+          } catch (err) {
             notification.warning({
               message: "Partial Success",
-              description:
-                "Employee created but hourly rate record failed to save",
+              description: "Employee created but hourly rate failed to save",
             });
+            console.log(err);
           }
         }
 
@@ -202,7 +179,6 @@ export const EmployeeModal = ({
       setCustomPosition("");
       onSuccess && onSuccess();
     } catch (error) {
-      console.error("Operation failed:", error);
       notification.error({
         message: "Error",
         description: `Operation failed: ${error.message}`,
@@ -243,6 +219,7 @@ export const EmployeeModal = ({
               <Input placeholder="Enter first name" />
             </Form.Item>
           </Col>
+
           <Col span={12}>
             <Form.Item
               name="lastName"
@@ -268,24 +245,20 @@ export const EmployeeModal = ({
               </Select>
             </Form.Item>
           </Col>
+
           <Col span={8}>
-            <Form.Item
-              name="hireDate"
-              label="Hire Date"
-              // rules={[{ required: true, message: "Please select hire date" }]}
-            >
+            <Form.Item name="hireDate" label="Hire Date">
               <DatePicker style={{ width: "100%" }} format="YYYY-MM-DD" />
             </Form.Item>
           </Col>
+
           <Col span={8}>
             <Form.Item
               name="type"
               label="Employee Type"
-              rules={[
-                { required: true, message: "Please select employee type" },
-              ]}
+              rules={[{ required: true, message: "Please select employee type" }]}
             >
-              <Select placeholder="Select type" onChange={setEmployeeType}>
+              <Select onChange={setEmployeeType} placeholder="Select type">
                 <Option value="hourly">Hourly</Option>
                 <Option value="salaried">Salaried</Option>
               </Select>
@@ -309,6 +282,7 @@ export const EmployeeModal = ({
               </Select>
             </Form.Item>
           </Col>
+
           <Col span={12}>
             <Form.Item name="positionId" label="Position">
               <Select
@@ -318,25 +292,20 @@ export const EmployeeModal = ({
                 filterOption={false}
                 onSearch={(value) => {
                   setCustomPosition(value);
-                  // If the value matches an existing position, clear custom position
-                  const existingPosition = positions?.find(
+                  const exists = positions?.find(
                     (pos) => pos.title.toLowerCase() === value.toLowerCase()
                   );
-                  if (existingPosition) {
-                    setCustomPosition("");
-                  }
+                  if (exists) setCustomPosition("");
                 }}
                 onSelect={(value) => {
                   setCustomPosition("");
                   form.setFieldsValue({ positionId: value });
                 }}
-                onClear={() => {
-                  setCustomPosition("");
-                }}
+                onClear={() => setCustomPosition("")}
                 notFoundContent={
                   customPosition ? (
-                    <div style={{ padding: "8px", color: "#1890ff" }}>
-                      Press Enter to create: "{customPosition}"
+                    <div style={{ padding: 8, color: "#1890ff" }}>
+                      Press Enter to create "{customPosition}"
                     </div>
                   ) : null
                 }
@@ -347,12 +316,14 @@ export const EmployeeModal = ({
                   </Option>
                 ))}
               </Select>
-              {customPosition && (
-                <div style={{ marginTop: 4, fontSize: 12, color: "#1890ff" }}>
-                  Will create new position: "{customPosition}"
-                </div>
-              )}
             </Form.Item>
+
+            {/* FIXED: now outside Form.Item */}
+            {customPosition && (
+              <div style={{ fontSize: 12, marginTop: 4, color: "#1890ff" }}>
+                Will create new position: "{customPosition}"
+              </div>
+            )}
           </Col>
         </Row>
 
@@ -385,6 +356,7 @@ export const EmployeeModal = ({
                 parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
               />
             </Form.Item>
+
             <Form.Item
               name="hourlyRate"
               label="Hourly Rate"
@@ -394,11 +366,7 @@ export const EmployeeModal = ({
                   required: employeeType === "hourly",
                   message: "Please enter hourly rate",
                 },
-                {
-                  type: "number",
-                  min: 0,
-                  message: "Must be a positive number",
-                },
+                { type: "number", min: 0, message: "Must be a positive number" },
               ]}
             >
               <InputNumber
@@ -413,6 +381,7 @@ export const EmployeeModal = ({
               />
             </Form.Item>
           </Col>
+
           <Col span={12}>
             <Form.Item name="managerEmployeeId" label="Manager">
               <Select placeholder="Select manager" allowClear>
@@ -420,7 +389,7 @@ export const EmployeeModal = ({
                   .filter((emp) => emp.id !== editingEmployee?.id)
                   .map((emp) => (
                     <Option key={emp.id} value={emp.id}>
-                      {`${emp.firstName} ${emp.lastName}`}
+                      {emp.firstName} {emp.lastName}
                     </Option>
                   ))}
               </Select>
